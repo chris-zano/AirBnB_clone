@@ -23,7 +23,7 @@ class FileStorage:
 
     def new(self, obj):
         """sets in __objects the obj with key <obj class name>.id"""
-        self.all.update({obj.to_dict()['__class__'] + '.' + obj.id: str(obj)})
+        FileStorage.__objects.update({obj.to_dict()['__class__'] + '.' + obj.id: str(obj)})
 
     def save(self):
         """serializes __objects to the JSON file (path: __file_path)"""
