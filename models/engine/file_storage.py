@@ -6,6 +6,13 @@ this file contains the FileStorage class
 
 
 import json
+from models.base_model import BaseModel
+from models.user import User
+from models.state import State
+from models.city import City
+from models.place import Place
+from models.amenity import Amenity
+from models.review import Review
 
 
 class FileStorage:
@@ -24,41 +31,30 @@ class FileStorage:
 
     def new(self, obj):
         """
-        adds a new object to storage
-        :param obj: object
-        :return: none
+        Set in __objects obj with key <obj_class_name>.id
         """
-        self.all().update({obj.to_dict()['__class__'] + '.' + obj.id: obj})
+        obj_name = obj.__class__.__name__
+        FileStorage.__objects["{}.{}".format(obj_name, obj.id)] = obj
 
     def save(self):
         """
-        saves to file
+        Serialize __objects to the JSON file __file_path.
         """
-        with open(FileStorage.__file_path, 'w') as f:
-            json.dump(FileStorage.__objects, f)
+        obj_dict = FileStorage.__objects
+        val = {obj: obj_dict[obj].to_dict() for obj in obj_dict.keys()}
+        with open(FileStorage.__file_path, "w") as f:
+            json.dump(val, f)
 
     def reload(self):
         """
-        deserializes the JSON file
+        Deserialize the JSON file __file_path to __objects, if it exists.
         """
-        from models.base_model import BaseModel
-        from models.user import User
-        from models.place import Place
-        from models.state import State
-        from models.city import City
-        from models.amenity import Amenity
-        from models.review import Review
-
-        classes = {
-            'BaseModel': BaseModel, 'User': User, 'Place': Place,
-            'State': State, 'City': City, 'Amenity': Amenity,
-            'Review': Review
-        }
         try:
-            temp = {}
-            with open(FileStorage.__file_path, 'r') as f:
-                temp = json.load(f)
-                for key, val in temp.items():
-                    self.all()[key] = classes[val['__class__']](**val)
+            with open(FileStorage.__file_path) as f:
+                objdict = json.load(f)
+                for o in objdict.values():
+                    cls_name = o["__class__"]
+                    del o["__class__"]
+                    self.new(eval(cls_name)(**o))
         except FileNotFoundError:
-            pass
+            return

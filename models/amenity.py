@@ -3,8 +3,6 @@
 This is the amenity.py file
 States amenities for the HBNB project
 """
-
-
 from models.base_model import BaseModel
 
 
